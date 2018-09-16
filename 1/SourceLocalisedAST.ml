@@ -12,7 +12,7 @@ and expression =
   | BinaryOp of binaryOp * localised_expression * localised_expression
 
 and location =
-  | Identifier  of identifier
+  | Identifier of identifier
 
 let mk_expr expr l c = { expr = expr; e_pos = l, c }
 
