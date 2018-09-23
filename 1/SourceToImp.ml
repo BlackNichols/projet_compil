@@ -27,6 +27,10 @@ let rec strip_instruction i = match Src.(i.instr) with
      Imp.Loop(strip_expression e, strip_instruction i)
   | Src.Sequence(i1,i2) ->
      Imp.Sequence(strip_instruction i1, strip_instruction i2)
+  | Src.Break ->
+     Imp.Break
+  | Src.Continue ->
+     Imp.Continue
       
 let strip_program p =
   let main = strip_instruction Src.(p.main) in

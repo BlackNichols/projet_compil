@@ -8,6 +8,7 @@ type token =
   | BOOL of bool
   | SEMI  (* ; *)
   | PRINT | WHILE
+  | BREAK | CONTINUE
   | IF | ELSE
   | SET  (* := *)
   | LP | RP (* (, ) *)
@@ -170,16 +171,18 @@ and read_word b =
     | c when 'a' <= c && c <= 'z' -> shift b; read_word b
     | _ -> (match current_word b with
 	(* On commence par vérifier si le mot est un mot-clé. *)
-	| "main" -> MAIN
-	| "print" -> PRINT
-	| "while" -> WHILE
-        | "if" -> IF
-        | "else" -> ELSE
-        | "true" -> BOOL true
-        | "false" -> BOOL false
-        | "var" -> VAR
-        | "integer" -> INTEGER
-        | "boolean" -> BOOLEAN
+      | "main" -> MAIN
+      | "print" -> PRINT
+      | "while" -> WHILE
+      | "if" -> IF
+      | "else" -> ELSE
+      | "true" -> BOOL true
+      | "false" -> BOOL false
+      | "var" -> VAR
+      | "integer" -> INTEGER
+      | "boolean" -> BOOLEAN
+      | "break" -> BREAK
+      | "continue" -> CONTINUE
 	(* Sinon, c'est un identificateur. *)
 	| id -> IDENT id
     )
@@ -193,6 +196,8 @@ let token_to_string = function
   | BOF -> "START"
   | BOOL b -> if b then "BOOL true" else "BOOL false"
   | BOOLEAN -> "BOOLEAN"
+  | BREAK -> "BREAK"
+  | CONTINUE -> "CONTINUE"
   | DIV -> "DIV"
   | ELSE -> "ELSE"
   | END -> "END"
@@ -244,6 +249,9 @@ let token_to_string = function
              |  while ( [expr] ) [block]
              |  if ( [expr] ) [block] else [block]
              |  [instr] ; [instr]
+             option break/continue
+             | break
+             | continue
 
      [expr] <-  <int>
              |  <ident>
@@ -375,6 +383,8 @@ and parse_block b =
             |  <ident> := [expr]
             |  while ( [expr] ) [block]
             |  if ( [expr] ) [block] else [block]
+            | break
+            | continue
 *)
 and parse_instr b =
   let i1 = parse_s_instr b in
@@ -399,6 +409,8 @@ and parse_s_instr b =
                                         expect_token ELSE b;
                                         let i2 = parse_block b in
                                         mk_loc_i (Conditional(e, i1, i2)) b
+    | BREAK -> shift b; mk_loc_i (Break) b
+    | CONTINUE -> shift b; mk_loc_i (Continue) b
     | t -> failwith (Printf.sprintf "Bad instruction on token %s" (token_to_string t))
 
 and mk_loc_i instr b =

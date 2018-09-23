@@ -4,7 +4,7 @@ open SourceLocalisedAST
 (* returns the type of a location in the given context *)
 let type_location context l =
   let (Identifier(Id(id))) = l in
-  Symb_Tbl.find id context
+  Symb_Tbl.find id context.identifier_types
 
 (* type reçu -> type attendu *)
 exception Type_error of typ * typ * (int * int)
@@ -74,6 +74,8 @@ let rec typecheck_instruction context i = match i.instr with
   | Sequence(i1,i2) ->
      typecheck_instruction context i1;
      typecheck_instruction context i2
+  | Break -> ()
+  | Continue -> ()
   | Nop -> ()
     
 let extract_context p =

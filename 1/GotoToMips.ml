@@ -13,9 +13,78 @@ let pop  reg = addi sp sp 4 @@ lw reg 0 sp
    Rappel de la convention : le code généré par [translate_expression e] doit
    placer la valeur de l'expression [e] au sommet de la pile.
 *)
-and translate_expression (e: GotoAST.expression) =
-  failwith "Not implemented"
+let translate_literal = function
+  | Int(i) ->
+     li t0 i
+     @@ push t0
+  | Bool(true) ->
+     li t0 (-1)
+     @@ push t0
+  | Bool(false) ->
+     li t0 0
+     @@ push t0
+     
+let rec translate_expression (e: GotoAST.expression) = match e with
+  | Literal(l) ->
+     translate_literal l
+  | Location(Identifier(Id(l))) ->
+     la t0 l
+     @@ push t0
+  | UnaryOp(u,e) ->
+     translate_uop u e
+  | BinaryOp(u,e1,e2) ->
+     translate_bop u e1 e2
 
+and translate_uop u e =
+  let aux i =
+    translate_expression e
+    @@ pop t0
+    @@ i
+    @@ push t0
+  in
+  match u with
+  | Minus ->
+     aux (neg t0 t0)
+  | Not ->
+     aux (not_ t0 t0)
+
+and translate_bop b e1 e2 =
+  let aux i =
+    translate_expression e1
+     @@ pop t0
+     @@ translate_expression e2
+     @@ pop t1
+     @@ i
+     @@ push t0
+  in
+  match b with
+  | Add ->
+     aux (add t0 t0 t1)
+  | Sub ->
+     aux (sub t0 t0 t1)
+  | Mult ->
+     aux (mul t0 t0 t1) 
+  | Div ->
+     aux (div t0 t0 t1)
+  | Mod ->
+     aux (rem t0 t0 t1)
+  | Eq ->
+     aux ((seq t0 t0 t1)@@(neg t0 t0))
+  | Neq ->
+     aux ((sne t0 t0 t1)@@(neg t0 t0))
+  | Lt ->
+     aux ((slt t0 t0 t1)@@(neg t0 t0))
+  | Le ->
+     aux ((sle t0 t0 t1)@@(neg t0 t0))
+  | Gt ->
+     aux ((sgt t0 t0 t1)@@(neg t0 t0))
+  | Ge ->
+     aux ((sge t0 t0 t1)@@(neg t0 t0))
+  | And ->
+     aux ((and_ t0 t0 t1)@@(neg t0 t0))
+  | Or ->
+     aux ((or_ t0 t0 t1)@@(neg t0 t0))
+     
 (**
    Fonction de traduction des instructions.
    [translate_instruction : GotoAST.instruction -> Mips.text]
@@ -29,15 +98,19 @@ let rec translate_instruction (i: GotoAST.instruction) = match i with
      @@ pop a0
      @@ li v0 1
      @@ syscall
-  | Set(Identifier(ID(s)),e) ->
+  | Set(Identifier(Id(s)),e) ->
      la t0 s
      @@ translate_expression e
      @@ pop t1
      @@ sw t1 0 t0
-  | Label Lab(l) ->
+  | Label(Lab(l)) ->
      label l
-  | Goto Lab(l) ->
+  | Goto(Lab(l)) ->
      b l
+  | ConditionalGoto(Lab(l),e) ->
+     translate_expression e
+     @@ pop t0
+     @@ bnez t0 l
   | Nop -> nop
 
 
