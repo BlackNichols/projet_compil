@@ -30,7 +30,8 @@ let rec translate_expression (e: Expression.expression) = match e with
      translate_literal l
   | Location(Identifier(Id(l))) ->
      la t0 l
-     @@ push t0
+     @@ lw t1 0 t0
+     @@ push t1
   | UnaryOp(u,e) ->
      translate_uop u e
   | BinaryOp(u,e1,e2) ->
@@ -52,11 +53,11 @@ and translate_uop u e =
 and translate_bop b e1 e2 =
   let aux i =
     translate_expression e1
-     @@ pop t0
-     @@ translate_expression e2
-     @@ pop t1
-     @@ i
-     @@ push t0
+    @@ translate_expression e2
+    @@ pop t1
+    @@ pop t0
+    @@ i
+    @@ push t0
   in
   match b with
   | Add ->
@@ -97,12 +98,14 @@ let rec translate_instruction (i: GotoAST.instruction) = match i with
   | Print(e) ->
      translate_expression e
      @@ pop a0
-     @@ li v0 1
+     @@ li v0 11
      @@ syscall
   | Set(Identifier(Id(s)),e) ->
      la t0 s
+     @@ push t0
      @@ translate_expression e
      @@ pop t1
+     @@ pop t0
      @@ sw t1 0 t0
   | Label(Lab(l)) ->
      label l

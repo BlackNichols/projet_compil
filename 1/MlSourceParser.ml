@@ -420,7 +420,7 @@ and mk_loc_i instr b =
 and expect_ident b =
   match next_token b with
     | IDENT s -> shift b; s
-    | t    -> failwith "Ident expected"
+    | t    -> failwith (Printf.sprintf "Ident expected, %s found" (token_to_string t))
 
 (* De même que pour les instructions, nous avons besoin de transformer la
    grammaire des expressions. On prend la grammaire LL classique pour les
