@@ -1,6 +1,7 @@
 open Printf
 open GotoAST
 open CommonAST
+open Expression
   
 let print_literal = function
   | Int i -> sprintf "%d" i

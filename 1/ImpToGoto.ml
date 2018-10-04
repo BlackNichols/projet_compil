@@ -12,38 +12,20 @@ let new_label =
   fun () ->
     incr cpt; CommonAST.Lab (Printf.sprintf "_label_%i" !cpt)
 
-let translate_location = function
-  | Imp.Identifier(i) ->
-     Gto.Identifier(i)
-
-let rec translate_expression = function
-  | Imp.UnaryOp(uop,e) ->
-     Gto.UnaryOp(uop,(translate_expression e))
-  | Imp.BinaryOp(bop,e1,e2) ->
-     Gto.BinaryOp(
-                    bop,
-                    (translate_expression e1),
-                    (translate_expression e2)
-                  )
-  | Imp.Literal(l) ->
-     Gto.Literal(l)
-  | Imp.Location(l) ->
-     Gto.Location(translate_location l)
-
 (*
   May rise exceptions if a break/continue occurs
   out of any loop
 *)
 let rec translate_instruction = function
   | Imp.Print(e) ->
-     Gto.Print(translate_expression e)
+     Gto.Print(e)
   | Imp.Set(l,e) ->
-     Gto.Set((translate_location l),(translate_expression e))
+     Gto.Set(l,e)
   | Imp.Conditional(e,i1,i2) ->
      let lbl_then = new_label ()
      and lbl_end = new_label ()
      in
-     (Gto.ConditionalGoto(lbl_then, translate_expression e)) ++
+     (Gto.ConditionalGoto(lbl_then,e)) ++
      (translate_instruction i2) ++
      (Gto.Goto(lbl_end)) ++
      (Gto.Label(lbl_then)) ++
@@ -55,7 +37,7 @@ let rec translate_instruction = function
      and lbl_end = new_label ()
      in
      (Gto.Label(lbl_start)) ++
-     (Gto.ConditionalGoto(lbl_loop, translate_expression e)) ++
+     (Gto.ConditionalGoto(lbl_loop,e)) ++
      (Gto.Goto(lbl_end)) ++
      (Gto.Label(lbl_loop)) ++
      (translate_instruction_in_loop lbl_start lbl_end i) ++
@@ -83,7 +65,7 @@ and translate_instruction_in_loop lbl_start lbl_end = function
      let lbl_then = new_label ()
      and lbl_end_if = new_label ()
      in
-     (Gto.ConditionalGoto(lbl_then, translate_expression e)) ++
+     (Gto.ConditionalGoto(lbl_then,e)) ++
      (translate_instruction_in_loop lbl_start lbl_end i2) ++
      (Gto.Goto(lbl_end_if)) ++
      (Gto.Label(lbl_then)) ++

@@ -1,4 +1,5 @@
 open CommonAST
+open Expression
 open GotoAST
 open Mips
 
@@ -24,7 +25,7 @@ let translate_literal = function
      li t0 0
      @@ push t0
      
-let rec translate_expression (e: GotoAST.expression) = match e with
+let rec translate_expression (e: Expression.expression) = match e with
   | Literal(l) ->
      translate_literal l
   | Location(Identifier(Id(l))) ->
