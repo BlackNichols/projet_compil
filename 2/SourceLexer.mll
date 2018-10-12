@@ -19,6 +19,7 @@
 	"var", VAR;
 	"integer", INTEGER;
 	"boolean", BOOLEAN;
+	"new", NEW;
       ] ;
     fun s ->
       (* On cherche la chaîne [s] dans la table. Si on trouve un mot-clé alors
@@ -46,9 +47,9 @@ rule token = parse
   | alpha+
       { id_or_keyword (lexeme lexbuf) }
   (* Traitement des nombres *)
-  | ['-']?['1'-'9']['0'-'9']
+  | ((['1'-'9']['0'-'9']*) | "0")
       {
-	CONST_INT(int_of_string (Lexing.lexeme lexbuf))
+        CONST_INT(int_of_string (Lexing.lexeme lexbuf))
       }
   (* Opérateurs *)
   | "+"
@@ -84,14 +85,25 @@ rule token = parse
       { LP }
   | ")"
       { RP }
+  (* Crochets *)
+  | "["
+      { LB }
+  | "]"
+      { RB }
   (* Début et fin de bloc *)
   | "{"
       { BEGIN }
   | "}"
       { END }
-  (* Fin de fichier *)
+  (* Séquence *)
+  | ";"
+      { SEMI }
+  (* Affectation *)
+  | ":="
+      { SET }
   | "//"
       { comment lexbuf }
+  (* Fin de fichier *)
   | eof
       { EOF }
   (* Caractères non reconnus *)
