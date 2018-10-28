@@ -11,7 +11,8 @@
 %token <int> CONST_INT
 %token <bool> CONST_BOOL
 %token <string> IDENT
-%token PLUS MINUS STAR DIV MOD
+%token PLUS MINUS
+%token STAR DIV MOD
 %token EQUAL NEQ LE LT GE GT
 %token AND OR NOT
 %token LP RP
@@ -26,10 +27,19 @@
 %token BEGIN END
 %token EOF
 
+%left OR
+%left AND
+%left EQUAL NEQ LE LT GE GT
+%left PLUS MINUS
+%left STAR DIV MOD
+%right NOT UMINUS
+%left SEMI
+
+
 (* Définition du symbole initial *)
 %start prog
 %type <SourceLocalisedAST.program> prog
-%type <Symb_Tbl.t> var_decls
+%type <typ Symb_Tbl.t> var_decls
 %type <SourceLocalisedAST.instruction> instruction
 
 %%
@@ -60,7 +70,11 @@ prog:
 (* Sinon : à compléter ! *)
 | VAR; INTEGER; id = IDENT; SEMI; vars = var_decls
    {
-     Symbl_Tbl.add id TypInt vars
+     Symb_Tbl.add id TypInt vars
+   }
+| VAR; BOOLEAN; id = IDENT; SEMI; vars = var_decls
+   {
+     Symb_Tbl.add id TypBool vars
    }
 ;
 
@@ -105,7 +119,7 @@ instruction:
    }
 | id = IDENT; SET; exp = localised_expression
    {
-     Set(id,exp)
+     Set(Identifier(Id(id)),exp)
    }
 | IF; LP; exp = localised_expression; RP; i1 = block; ELSE; i2 = block
    {
@@ -113,15 +127,15 @@ instruction:
    }
 | WHILE; LP; exp = localised_expression; RP; i = block
    {
-     LOOP(exp,i)
+     Loop(exp,i)
    }
-| i1 = localized_instruction; SEMI; i2 = localized_instruction
+| i1 = localised_instruction; SEMI; i2 = localised_instruction
    {
      Sequence(i1,i2)
    }
 ;
 
-localized_expression:
+localised_expression:
 | e=expression
    {
      let l = $startpos.pos_lnum in
@@ -141,17 +155,69 @@ expression:
    }
 | id = IDENT
    {
-     Location(Id(id))
+     Location(Identifier(Id(id)))
    }
-| LP; e = localized_expression; RP
+| LP; e = expression; RP
   {
     e
   }
-| MINUS; e = localized_expression
+| MINUS; e = localised_expression %prec UMINUS
    {
      UnaryOp(Minus, e)
    }
-| NOT; e = localized_expression
+| NOT; e = localised_expression
    {
-     
+     UnaryOp(Not, e)
    }
+| e1 = localised_expression; PLUS; e2 = localised_expression
+  {
+    BinaryOp(Add,e1,e2)
+  }
+| e1 = localised_expression; MINUS; e2 = localised_expression
+  {
+    BinaryOp(Sub,e1,e2)
+  }
+| e1 = localised_expression; STAR; e2 = localised_expression
+  {
+    BinaryOp(Mult,e1,e2)
+  }
+| e1 = localised_expression; DIV; e2 = localised_expression
+  {
+    BinaryOp(Div,e1,e2)
+  }
+| e1 = localised_expression; MOD; e2 = localised_expression
+  {
+    BinaryOp(Mod,e1,e2)
+  }
+| e1 = localised_expression; EQUAL; e2 = localised_expression
+  {
+    BinaryOp(Eq,e1,e2)
+  }
+| e1 = localised_expression; NEQ; e2 = localised_expression
+  {
+    BinaryOp(Neq,e1,e2)
+  }
+| e1 = localised_expression; GE; e2 = localised_expression
+  {
+    BinaryOp(Ge,e1,e2)
+  }
+| e1 = localised_expression; GT; e2 = localised_expression
+  {
+    BinaryOp(Gt,e1,e2)
+  }
+| e1 = localised_expression; LE; e2 = localised_expression
+  {
+    BinaryOp(Le,e1,e2)
+  }
+| e1 = localised_expression; LT; e2 = localised_expression
+  {
+    BinaryOp(Lt,e1,e2)
+  }
+| e1 = localised_expression; AND; e2 = localised_expression
+  {
+    BinaryOp(And,e1,e2)
+  }
+| e1 = localised_expression; OR; e2 = localised_expression
+  {
+    BinaryOp(Or,e1,e2)
+  }
