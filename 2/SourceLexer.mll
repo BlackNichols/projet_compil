@@ -19,6 +19,7 @@
 	"var", VAR;
 	"integer", INTEGER;
 	"boolean", BOOLEAN;
+	"new", NEW;
       ] ;
     fun s ->
       (* On cherche la chaîne [s] dans la table. Si on trouve un mot-clé alors
@@ -84,6 +85,11 @@ rule token = parse
       { LP }
   | ")"
       { RP }
+  (* Crochets *)
+  | "["
+      { LB }
+  | "]"
+      { RB }
   (* Début et fin de bloc *)
   | "{"
       { BEGIN }

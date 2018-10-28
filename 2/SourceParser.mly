@@ -16,8 +16,9 @@
 %token EQUAL NEQ LE LT GE GT
 %token AND OR NOT
 %token LP RP
+%token LB RB
 
-%token VAR
+%token VAR NEW
 %token INTEGER BOOLEAN
 
 %token MAIN
@@ -117,9 +118,9 @@ instruction:
    {
      Print(exp)
    }
-| id = IDENT; SET; exp = localised_expression
+| l = location; SET; exp = localised_expression
    {
-     Set(Identifier(Id(id)),exp)
+     Set(l,exp)
    }
 | IF; LP; exp = localised_expression; RP; i1 = block; ELSE; i2 = block
    {
@@ -153,9 +154,9 @@ expression:
    {
      Literal(Bool(b))
    }
-| id = IDENT
+| l = location
    {
-     Location(Identifier(Id(id)))
+     l
    }
 | LP; e = expression; RP
   {
@@ -221,3 +222,10 @@ expression:
   {
     BinaryOp(Or,e1,e2)
   }
+;
+
+location :
+| id = IDENT
+   {
+     Location(Identifier(Id(id)))
+   }
