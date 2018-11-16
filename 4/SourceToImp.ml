@@ -52,6 +52,8 @@ let rec strip_expression type_context e = match Src.(e.expr) with
     (* Pour utiliser [NewBlock] on a besoin de fournir la taille sous la
        forme d'une expression du langage intermédiaire [ImpAST]. *)
     Imp.NewBlock(Imp.Literal(Int(size)))
+  | Src.FunCall(id, args) ->
+     Imp.FunCall(id, (List.map strip_expression args))
 
 (* Traduction des emplacements mémoire, avec le paramètre supplémentaire. *)
 and strip_location type_context = function

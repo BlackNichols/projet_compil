@@ -126,7 +126,11 @@ let extract_context p =
   { identifier_types = p.globals;
     (* Le contexte de typage contient maintenant en plus la table des 
        structures. *)
-    struct_types = p.structs; }
+    struct_types = p.structs;
+    functions_signature =
+      Symb_Tbl.add "print_int" { return=TypInt; formals=["x", TypInt] }
+      (Symb_Tbl.add
+  }
 
 let typecheck_program p =
   let type_context = extract_context p in

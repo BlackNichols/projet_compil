@@ -19,7 +19,9 @@ let rec translate_expression = function
 
   (* Création d'un bloc : rien de spécial. *)
   | Imp.NewBlock(e) ->
-    Gto.NewBlock(translate_expression e)
+     Gto.NewBlock(translate_expression e)
+  | Imp.FunCall(id,args) ->
+     Gto.FunCall(id, (List.map translate_expression args))
       
 and translate_location = function
   | Imp.Identifier id ->
