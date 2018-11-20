@@ -49,7 +49,7 @@ and type_expression context e = match e.expr with
        try
 	 let sign = Symb_Tbl.find id context.function_signatures in
 	 iter2
-	   (fun (_ , t) e = check_type context e t)
+	   (fun (_,t) e = check_type context e t)
 	   sign.formals
 	   args
        with
@@ -128,8 +128,16 @@ let extract_context p =
        structures. *)
     struct_types = p.structs;
     functions_signature =
-      Symb_Tbl.add "print_int" { return=TypInt; formals=["x", TypInt] }
-      (Symb_Tbl.add
+      let tbl1 = Symb_Tbl.empty in
+      let tbl2 = Symb_tbl.add
+	"print_int"
+	{ return=TypInt; formals=["x", TypInt] }
+	tbl1
+      in
+      Symb_Tbl.add
+	"power"
+	{ return=TypInt; formals=["x", TypInt; "n", TypInt] }
+	tbl2
   }
 
 let typecheck_program p =

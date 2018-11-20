@@ -93,6 +93,12 @@ and translate_expression = function
     (* Renvoyer l'adresse du premier champ, via la pile *)
     @@ addi t0 v0 4 (* $t0 <- adresse du premier champ *)
     @@ push t0
+  | FunCall(id,args) ->
+     fold_right (fun e acc -> acc @@ translate_expression e) args ""
+     @@ jal id
+     @@ pop t0
+     @@ fold_left (fun _ _ -> pop t1) args ""
+     @@ push t0
       
 let rec translate_instruction = function
   | Sequence(i1, i2) ->
@@ -161,6 +167,30 @@ let translate_program program =
     @@ label "atoi_end"
     @@ move v0 t1
     @@ jr   ra
+    @@ comment "print_int"
+    @@ label "print_int"
+    @@ lw a0 4 sp
+    @@ li v0 1
+    @@ syscall
+    @@ sw a0 0 sp
+    @@ subi sp sp 4
+    @@ jr ra
+      
+    @@ comment "power"
+    @@ label "power"
+    @@ lw s0 8 sp
+    @@ lw s1 4 sp
+    @@ li t0 1
+    @@ b "power_loop_guard"
+    @@ label "power_loop_code"
+    @@ mul t0 t0 s1
+    @@ subi s0 s0 1
+    @@ label "power_loop_guard"
+    @@ bgtz s0 "power_loop_code"
+    @@ sw t0 0 sp
+    @@ subi sp sp 4
+    @@ jr ra
+
   in
 
   let main_code = translate_instruction program.main in

@@ -53,8 +53,9 @@ prog:
    de structure et d'une séquence de déclarations de variables suivies d'un
    bloc de code principal. *)
 | structs=struct_decls; globals=var_decls; main=main; EOF
-  { let globals = Symb_Tbl.add "arg" TypInt globals in
-    { main; globals; structs } }
+  { let globals = Symb_Tbl.add "arg" TypInt globals
+    and functions = Symb_Tbl.empty in
+    { main; globals; structs; functions } }
 
 | error { let pos = $startpos in
           let message =
@@ -157,13 +158,13 @@ expression:
 | NEW; ty=typ { match ty with TypStruct(id) -> NewRecord(id) | _ -> assert false }
 | id=IDENT; LP; args=arguments; RP
    {
-     FunCall(id,args)
+     FunCall(Id(id),args)
    }
 ;
 
 arguments:
 | (* empty *) { [] }
-| e=expression; COMMA; args=arguments
+| e=localised_expression; COMMA; args=arguments
    {
      e::args
    }
